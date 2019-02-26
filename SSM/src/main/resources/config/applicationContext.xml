@@ -1,0 +1,57 @@
+<beans xmlns="http://www.springframework.org/schema/beans"  
+       xmlns:tx="http://www.springframework.org/schema/tx"  
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:context="http://www.springframework.org/schema/context"  
+       xmlns:aop="http://www.springframework.org/schema/aop"  
+       xmlns:p="http://www.springframework.org/schema/p"   
+       xsi:schemaLocation="http://www.springframework.org/schema/beans   
+       http://www.springframework.org/schema/beans/spring-beans.xsd  
+       http://www.springframework.org/schema/tx   
+       http://www.springframework.org/schema/tx/spring-tx.xsd  
+       http://www.springframework.org/schema/context   
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop  
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://cxf.apache.org/jaxws 
+       http://cxf.apache.org/schemas/jaxws.xsd">
+        
+	<!-- 扫描实体类 -->
+	<context:component-scan base-package="com.huaxin.ssm">
+	   <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+	<!-- 加载数据源配置文件 -->
+    <context:property-placeholder location="classpath:/config/jdbc.properties"/> 
+    
+    <!--数据源配置 c3p0数据源连接-->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"  destroy-method="close">
+	    <property name="user"><value>${jdbc_oracle.user}</value></property>
+	    <property name="password"><value>${jdbc_oracle.password}</value></property>
+	    <property name="driverClass"><value>${jdbc_oracle.driverClass}</value></property>
+	    <property name="jdbcUrl"><value>${jdbc_oracle.jdbcUrl}</value></property>
+	    
+	    <property name="maxPoolSize"><value>${jdbc.maxPoolSize}</value></property>
+	    <property name="minPoolSize"><value>${jdbc.minPoolSize}</value></property>
+	    <property name="initialPoolSize"><value>${jdbc.initialPoolSize}</value></property>
+	    <property name="maxIdleTime"><value>${jdbc.maxIdleTime}</value></property>
+	    <property name="checkoutTimeout"><value>${jdbc.checkoutTimeout}</value></property>
+	    <property name="acquireIncrement"><value>${jdbc.acquireIncrement}</value></property>
+	</bean>  
+    <!-- 注入数据源、给实体类起别名（默认是类类名称）、加载SQLmapper映射文件 -->
+	<bean id="sqlSessionFactory"  class="org.mybatis.spring.SqlSessionFactoryBean">
+	    <property name="dataSource" ref="dataSource"/>
+	    <property name="typeAliasesPackage" value="com.huaxin.ssm.bean"/>
+	    <property name="mapperLocations" value="classpath*:com/huaxin/ssm/dao/*Mapper.xml" />
+	</bean>
+    <!-- 扫描接口文件、注入 sqlSessionFactory-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" 
+	    p:basePackage="com.huaxin.ssm.dao"
+        p:sqlSessionFactoryBeanName="sqlSessionFactory"/>
+    <!-- 配置spring事务 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+       <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!-- 开启事务控制的注解支持 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+</beans>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 命名空间必须配置，而且名称必须是接口全限定接口名称 -->
+<mapper namespace="com.huaxin.ssm.dao.UserMapper">
+   
+     <!-- 通过参数类型是String 的对象，查询返回类型是map的对象
+    	1:如果参数类型是String，则条件占位符中的名称可以任意一个名称
+    -->
+  <select id="getStringByMap" parameterType="String" resultType="map">
+
+ 	select t.userid,t.name,t.pwd,t.sex,t.birthday,t.age,t.salary from t_user t where t.userid=#{1} 
+ 
+  </select>
+  
+       <!--add 添加类型是pojo的 返回的是一条数据的
+    -->
+	<!-- <insert id="add" parameterType="User">
+	
+			insert into b_user values(#{userid},#{name},#{pwd},#{sex},#{birthday},#{age},#{salary})
+	
+	</insert> -->
+  
+   <!-- add 添加类型是pojo的  返回的是当前添加的id的
+		返回id的话必须要加  keyColumn="id" keyProperty="intid" useGeneratedKeys="true"
+
+-->
+<insert id="add" parameterType="User" keyColumn="userid" keyProperty="intid" useGeneratedKeys="true">
+  
+  	<selectKey keyProperty="intid" resultType="int" order="BEFORE">
+  		
+  		select test_seq.nextval from  dual
+  	</selectKey>
+  		insert into b_user values(#{intid},#{name},#{pwd},#{sex},#{birthday},#{age},#{salary})
+  
+  </insert>
+  <!-- delete 删除一条数据 -->
+  <delete id="delete" parameterType="String">
+  
+  		delete from b_user b where b.userid=#{0}
+  
+  </delete>
+  <!-- deleteMore 删除多条数据 -->
+  <delete id="deleteMore" parameterType="map">
+  
+  		delete from b_user b where b.userid in (${ids})
+  
+  </delete>
+  
+  <!-- update 修改数据 -->
+  <update id="update" parameterType="map" >
+  	update b_user b
+  	<set>
+  		b.userid=b.userid
+  		<if test="userkey.name!=null and userkey.name!=''">
+			,b.name=#{userkey.name,jdbcType=VARCHAR}  		
+  		</if>
+  		<if test="userkey.sex!=null and userkey.sex!=''">
+			,b.sex=#{userkey.sex,jdbcType=VARCHAR}  		
+  		</if>
+  		<if test="userkey.age>0">
+			,b.age=#{userkey.age,jdbcType=VARCHAR}  		
+  		</if>
+  		<where>
+  			b.userid=#{userkey.userid}
+  		</where>
+  	</set>
+  </update>
+  
+  <!-- 不分页查询 -->
+  	<select id="getAll" parameterType="map" resultType="User">
+  			select b.userid,b.name,b.pwd,b.sex,b.birthday as birthdays,b.age,b.salary from b_user b
+  		<where>
+  		1=1
+  		</where>
+  		<if test="name!=null and name!=''">
+  			and b.name like '%${name}%'
+  		</if>
+  		<if test="beginbirthdat!=null">
+  			and b.birthday <![CDATA[>=]]>to_date(#{beginbirthdat},'yyyy-MM-dd')
+  		</if>
+  		<if test="endbirthdat!=null">
+  			and b.birthday <![CDATA[>=]]>to_date(#{endbirthdat},'yyyy-MM-dd')
+  		</if>
+  	</select>
+  	
+  	<!-- 分页查询  返回集合-->
+  
+  	<select id="getAllByPage" parameterType="map" resultType="map">
+  		select b.userid,b.name,b.pwd,b.sex,b.birthday,b.age,b.salary from b_user b
+  	<include refid="wheresql"/>
+  	</select>
+  <!-- 查询总页数 -->
+  <select id="getCount" parameterType="map" resultType="int">
+  
+  		select count(*) from b_user b
+  	<include refid="wheresql"/>
+  </select>
+  <!-- sql语句块 -->
+  
+  	<sql id="wheresql">
+  		
+  		<where>
+  		1=1
+  		</where>
+  		<if test="name!=null and name!=''">
+  			and b.name like '%${name}%'
+  		</if>
+  		<if test="beginbirthdat!=null">
+  			and b.birthday <![CDATA[>=]]>to_date(#{beginbirthdat},'yyyy-MM-dd')
+  		</if>
+  		<if test="endbirthdat!=null">
+  			and b.birthday <![CDATA[>=]]>to_date(#{endbirthdat},'yyyy-MM-dd')
+  		</if>
+  		
+  	
+  	
+  	</sql>
+  
+</mapper>
+
